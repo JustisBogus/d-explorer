@@ -10,13 +10,14 @@
     padding: 0 5px;
     margin: 2px 0;
     box-shadow: 0 5px 9px 0px rgba(0, 0, 0, 0.1);
+    z-index: 20;
 }
 
-.Node__Container.focus{
+.Node__Container.focus {
     color: black;
 }
 
-.Node__Container.selected{
+.Node__Container.selected {
     color: #3ab54a;
 }
 

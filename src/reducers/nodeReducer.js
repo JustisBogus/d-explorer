@@ -1,7 +1,9 @@
 import loadRoot from '../actions/loadRootNodeAction';
 import loadChildren from '../actions/loadChildrenAction';
 import toggleChildren from '../actions/toggleChildrenAction';
+import unmarkChildren from '../actions/unmarkChildren';
 import NodeExplorer from '../utils/NodeExplorer';
+
 // import generateNodes from '../utils/NodeGenerator';
 
 // const rootNode = {
@@ -29,6 +31,7 @@ export default (state = { rootNode: null }, action) => {
 
             explorer.addChildren(action.parent, action.data);
             // explorer.addChildren(action.parent, children);
+            explorer.markChildrenForAnimationRecuresively(action.parent);
             
             return {
                 rootNode: explorer.getRoot()
@@ -36,11 +39,18 @@ export default (state = { rootNode: null }, action) => {
         }
         case toggleChildren(0).type: {
             const explorer = new NodeExplorer(NodeExplorer.clone(state.rootNode));
-            explorer.toggleChildren(action.parent);            
+            explorer.toggleChildren(action.parent); 
             return {
                 rootNode: explorer.getRoot()
             } 
-        }  
+        } 
+        case unmarkChildren(0).type: {
+            const explorer = new NodeExplorer(NodeExplorer.clone(state.rootNode));
+            explorer.unmarkChildrenForAnimationRecuresively(action.parent);
+            return {
+                rootNode: explorer.getRoot()
+            }
+        }
         default:
             return state
     }

@@ -23,6 +23,43 @@ export default class NodeExplorer {
         return node.showChildren = !node.showChildren;
     }
 
+    // mark all children and children of children for animation recursively
+    markChildrenForAnimationRecuresively(parentId) {
+        const node = NodeExplorer.findInTree(this.root, parentId);
+        NodeExplorer.markChildrenForAnimation(node);
+    }
+
+    static markChildrenForAnimation(parentNode) { 
+        parentNode.animate = true;      
+        if (!parentNode.children) {
+          return ;  
+        }
+        for (let i = 0; i < parentNode.children.length; i++ ) {       
+            const child = parentNode.children[i];
+            NodeExplorer.markChildrenForAnimation(child);
+        }
+    }
+
+    unmarkChildrenForAnimationRecuresively(parentId) {
+        const node = NodeExplorer.findInTree(this.root, parentId);
+        NodeExplorer.unmarkChildrenForAnimation(node);
+    }
+
+    static unmarkChildrenForAnimation(parentNode) { 
+        parentNode.animate = false;      
+        if (!parentNode.children) {
+          return ;  
+        }
+        for (let i = 0; i < parentNode.children.length; i++ ) {       
+            const child = parentNode.children[i];
+            NodeExplorer.unmarkChildrenForAnimation(child);
+        }
+    }
+
+    
+
+
+
     getRoot(){
         return this.root;
     }

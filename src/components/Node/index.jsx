@@ -7,10 +7,18 @@ import setLoadedAction from '../../actions/Loading/setLoadedAction';
 import loadChildren from '../../actions/loadChildrenAction';
 import toggleChildren from '../../actions/toggleChildrenAction';
 import openModalAction from '../../actions/Modal/openModalAction';
+import unmarkChildren from '../../actions/unmarkChildren';
 import setFocus from '../../actions/setFocus';
+import { Transition, animated, Spring } from 'react-spring/renderprops';
 import RequestsManager, { requestName } from '../../utils/RequestsManager';
+import NodeExplorer from '../../utils/NodeExplorer';
 
 import './styles.css';
+
+
+//const animation = useSpring({opacity: 1, from: {opacity: 0}});
+
+//const AnimatedDonut = animated(animation);
 
 export class Node extends React.PureComponent {
     onOpenModal = () => {
@@ -20,7 +28,7 @@ export class Node extends React.PureComponent {
     handleClick = async (nodeId) => {
         const {
             id, onLoad, showChildren, sourceUrl, numberOfChildren,
-            setLoading, setLoaded, children,
+            setLoading, setLoaded, children, animate
         } = this.props;
         
         if (numberOfChildren > 0) {
@@ -37,20 +45,20 @@ export class Node extends React.PureComponent {
             }
 
             setLoaded();
-
-            this.props.setFocus(nodeId);
-
         }
+
+        this.props.setFocus(nodeId);
+
     }
 
     render() {
-        const { title, numberOfChildren, id, focusNode, parent } = this.props;
+        const { title, numberOfChildren, id, focusNode, parent, animate } = this.props;
         const classList = ['Node__Container'];
 
-        if (numberOfChildren === 0) {
+        if (numberOfChildren === 0 && id !== focusNode) {
             classList.push('disabled');
         }
-
+        
         if (parent == focusNode) {
             classList.push('focus');
         }
@@ -59,24 +67,62 @@ export class Node extends React.PureComponent {
             classList.push('selected');
         }
 
+        let animationMargin;
+
+        if (animate) {
+            animationMargin = -500;
+        } else {
+            animationMargin = 0;
+        }
+
+        console.log(id, animate);
+       // console.log(focusNode);
+        //console.log(focusNode == id && animate);
+//onRest={(focusNode == id) ? () => this.props.unmarkChildren(id) : null}
         return (
-            <div className={classList.join(' ')}>
-                <div onClick={() => this.handleClick(id)} className="Node__Title">
-                    <span>{title}</span> <span>{numberOfChildren}</span>
-                </div>
-                <div className="Node__ModalButtonContainer" onClick={this.onOpenModal}>
-                    <i className="fa fa-external-link"></i>
-                </div>
-            </div>
+            <Transition
+                native
+                items={true}
+                from={{ opacity: 0, marginLeft: animationMargin }}
+                enter={{ opacity: 1, marginLeft: 0 }}
+                leave={{ opacity: 0, marginLeft: animationMargin }}
+                onRest={() => this.props.unmarkChildren("1")}
+            >
+                {show => show && (props => (
+                    <animated.div style={props}>
+                        <div className={classList.join(' ')}>
+                            <div onClick={() => this.handleClick(id)} className="Node__Title">
+                                <span>{title}</span>
+                                    <Spring
+                                        from={{ number: 0 }}
+                                        to={{ number: numberOfChildren }}
+                                        config={{ duration: 100 }}
+                                    >
+                                    {props => (
+                                        <div style={props}>
+                                             {props.number.toFixed()}
+                                        </div>
+                                    )} 
+                                    </Spring>
+                            </div>
+                            <div className="Node__ModalButtonContainer" onClick={this.onOpenModal}>
+                                <i className="fa fa-external-link"></i>
+                            </div>
+                        </div> 
+                    </animated.div>
+                ))}
+            </Transition>     
         );
     }
 }
+
 
 export const nodeProps = {
     id: PropTypes.string.isRequired,
     parent: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     showChildren: PropTypes.bool,
+    animate: PropTypes.bool,
     numberOfChildren: PropTypes.number.isRequired,
     children: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string.isRequired,
@@ -110,6 +156,7 @@ export default connect(
                 dispatch(toggleChildren(id));
             }
         },
+        unmarkChildren: (id) => { dispatch(unmarkChildren(id)) },
         setLoading: () => { dispatch(setLoadingAction()); },
         setLoaded: () => { dispatch(setLoadedAction()); },
         openModalAction: (enrolleeId) => dispatch(openModalAction(enrolleeId)),
