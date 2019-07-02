@@ -36,6 +36,7 @@ export default class NodeExplorer {
         }
         for (let i = 0; i < parentNode.children.length; i++ ) {       
             const child = parentNode.children[i];
+           // child.animate = true;
             NodeExplorer.markChildrenForAnimation(child);
         }
     }

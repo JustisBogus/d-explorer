@@ -13,6 +13,15 @@
     z-index: 20;
 }
 
+.Node__Container:hover {
+    box-shadow: 0 1px 1px 0px rgba(0, 0, 0, 0.1);
+}
+
+.Node__Container:active {
+    border: 1px solid #3ab54a;
+    color: lightgrey;
+}
+
 .Node__Container.focus {
     color: black;
 }

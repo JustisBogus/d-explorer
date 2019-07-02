@@ -11,7 +11,7 @@ import unmarkChildren from '../../actions/unmarkChildren';
 import setFocus from '../../actions/setFocus';
 import { Transition, animated, Spring } from 'react-spring/renderprops';
 import RequestsManager, { requestName } from '../../utils/RequestsManager';
-import NodeExplorer from '../../utils/NodeExplorer';
+
 
 import './styles.css';
 
@@ -20,7 +20,12 @@ import './styles.css';
 
 //const AnimatedDonut = animated(animation);
 
-export class Node extends React.PureComponent {
+export class Node extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = { clicked: false }
+      }
+
     onOpenModal = () => {
         this.props.openModalAction({enrolleeId: this.props.id})
     };
@@ -48,7 +53,9 @@ export class Node extends React.PureComponent {
         }
 
         this.props.setFocus(nodeId);
-
+        this.setState({ clicked: true });
+        //this.forceUpdate();
+        //this.setState(this.state);
     }
 
     render() {
@@ -75,24 +82,44 @@ export class Node extends React.PureComponent {
             animationMargin = 0;
         }
 
-        console.log(id, animate);
-       // console.log(focusNode);
-        //console.log(focusNode == id && animate);
-//onRest={(focusNode == id) ? () => this.props.unmarkChildren(id) : null}
+        let parentNode = false;
+
+        if (focusNode == id) {
+            parentNode = true;
+        }
+
+        let animationScaleFrom;
+        let animationScaleTo;
+        let enter;
+     
+        if (animate && focusNode != id) {
+            animationScaleFrom = { opacity: 0, transform: `scale(0.8)`} 
+            animationScaleTo = { opacity: 1, transform: `scale(1)`}
+            enter={ opacity: 1, transform: `scale(1)`}
+        }
+        else {
+            console.log('no animate ' ,id);
+            animationScaleFrom = { opacity: 1,  transform: `scale(1)`}
+            animationScaleTo = { opacity: 1, transform: `scale(1)`} 
+            enter={ opacity: 1, transform: `scale(1)`}
+        }
+     
         return (
             <Transition
                 native
                 items={true}
-                from={{ opacity: 0, marginLeft: animationMargin }}
-                enter={{ opacity: 1, marginLeft: 0 }}
-                leave={{ opacity: 0, marginLeft: animationMargin }}
-                onRest={() => this.props.unmarkChildren("1")}
+                from={animationScaleFrom}
+                to={animationScaleTo}
+                enter={enter}
+                leave={animationScaleFrom}
+                onRest={focusNode == id ? () => this.props.unmarkChildren(id) : null}
             >
                 {show => show && (props => (
                     <animated.div style={props}>
                         <div className={classList.join(' ')}>
                             <div onClick={() => this.handleClick(id)} className="Node__Title">
                                 <span>{title}</span>
+                                <div>{focusNode}</div><div>{id}</div>
                                     <Spring
                                         from={{ number: 0 }}
                                         to={{ number: numberOfChildren }}
