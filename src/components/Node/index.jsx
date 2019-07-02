@@ -12,13 +12,7 @@ import setFocus from '../../actions/setFocus';
 import { Transition, animated, Spring } from 'react-spring/renderprops';
 import RequestsManager, { requestName } from '../../utils/RequestsManager';
 
-
 import './styles.css';
-
-
-//const animation = useSpring({opacity: 1, from: {opacity: 0}});
-
-//const AnimatedDonut = animated(animation);
 
 export class Node extends React.Component {
     constructor(props) {
@@ -31,6 +25,7 @@ export class Node extends React.Component {
     };
 
     handleClick = async (nodeId) => {
+        this.props.setFocus(nodeId);
         const {
             id, onLoad, showChildren, sourceUrl, numberOfChildren,
             setLoading, setLoaded, children, animate
@@ -51,11 +46,9 @@ export class Node extends React.Component {
 
             setLoaded();
         }
-
-        this.props.setFocus(nodeId);
+  
         this.setState({ clicked: true });
-        //this.forceUpdate();
-        //this.setState(this.state);
+    
     }
 
     render() {
@@ -118,19 +111,8 @@ export class Node extends React.Component {
                     <animated.div style={props}>
                         <div className={classList.join(' ')}>
                             <div onClick={() => this.handleClick(id)} className="Node__Title">
-                                <span>{title}</span>
-                                <div>{focusNode}</div><div>{id}</div>
-                                    <Spring
-                                        from={{ number: 0 }}
-                                        to={{ number: numberOfChildren }}
-                                        config={{ duration: 100 }}
-                                    >
-                                    {props => (
-                                        <div style={props}>
-                                             {props.number.toFixed()}
-                                        </div>
-                                    )} 
-                                    </Spring>
+                                <span>{title}</span>                      
+                                <div>{numberOfChildren}</div>
                             </div>
                             <div className="Node__ModalButtonContainer" onClick={this.onOpenModal}>
                                 <i className="fa fa-external-link"></i>
