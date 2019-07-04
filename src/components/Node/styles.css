@@ -4,8 +4,8 @@
     align-content: center;
     align-items: center;
     height: 34px;
-    color: lightgrey;
     border: 1px solid lightgrey;
+    color: lightgrey;
     border-radius: 5px;
     padding: 0 5px;
     margin: 2px 0;
@@ -34,7 +34,7 @@
     color: #adadad;
 }
 
-.Node__Title {
+.Node__Title,.LoadMoreNode__Title {
     display: flex;
     width: 100%;
     padding-right: 5px;
@@ -56,4 +56,7 @@
     display: flex;
     padding: 4px;
     cursor: pointer;
+}
+.LoadMoreNode__Title {
+    justify-content: center;
 }

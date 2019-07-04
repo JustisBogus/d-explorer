@@ -9,11 +9,11 @@
     "react-redux": "^7.0.3",
     "react-responsive-modal": "^4.0.1",
     "react-scripts": "3.0.1",
-    "react-spring": "^8.0.25",
     "redux": "^4.0.1",
     "redux-thunk": "^2.3.0"
   },
   "scripts": {
+    "start-api": "node api-server/index.js",
     "start": "react-scripts start",
     "build": "react-scripts build && rm -rf dist/* && mv build/* dist && rm -rf build*",
     "test": "react-scripts test",

@@ -4,8 +4,6 @@ import Node, { nodeProps } from '../Node';
 import EmptyNode from '../EmptyNode';
 import './index.css'
 
-//{`${i}${(n.animate?'animate':'')}`}
-
 export default class Column extends React.PureComponent {
     render(){
         const { nodes } = this.props;
@@ -13,7 +11,7 @@ export default class Column extends React.PureComponent {
             if (n.isEmpty){
                 return (<EmptyNode key={`${i}${(n.animate?'animate':'')}`} {...n} />);
             }
-            return (<Node key={`${i}${(n.animate?'animate':'')}`} {...n} />);
+            return (<Node key={`${i}${(n.animate?'animate':'')}`} {...n} i={i}/>);
         });
         return (
             <div className="Column__Container">{content}</div>

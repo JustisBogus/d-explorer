@@ -15,7 +15,7 @@ export default class NodeExplorer {
             node.children = [];
         }
 
-        node.children = [...node.children, ...children];        
+        node.children = [...(node.children.filter(c => !c.loadMoreNode)), ...children];        
     }
 
     toggleChildren(id){
@@ -29,7 +29,7 @@ export default class NodeExplorer {
         NodeExplorer.markChildrenForAnimation(node);
     }
 
-    static markChildrenForAnimation(parentNode) { 
+    static markChildrenForAnimation(parentNode, actionData) { 
         parentNode.animate = true;      
         if (!parentNode.children) {
           return ;  

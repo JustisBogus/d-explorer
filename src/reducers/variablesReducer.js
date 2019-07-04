@@ -3,14 +3,16 @@ import setLoadedAction from '../actions/Loading/setLoadedAction';
 import setSourcesAction from '../actions/setSourcesAction';
 import addLevelWidth from '../actions/addLevelWidth';
 import setFocus from '../actions/setFocus';
+import setLoadMoreIndex from '../actions/setLoadMoreIndex';
 
 const defaultState = {
-    visibleIndex: 0,
     maxColumnSize: 5,
     loading: false,
     sourceUrl: '',
     detailsUrl: '',
-    focusNode: 1,
+    inModal: true,
+    focusNode: '',
+    loadMoreIndex: 0,
 }
 
 export default (state = defaultState, action) => {
@@ -34,6 +36,10 @@ export default (state = defaultState, action) => {
         case setFocus(state).type:
             {
                 return {...state, focusNode: action.id};
+            }
+        case setLoadMoreIndex(state).type:
+            {
+                return {...state, loadMoreIndex: action.i};
             }
         default:
             return state;

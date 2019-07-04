@@ -31,7 +31,7 @@ export default (state = { rootNode: null }, action) => {
 
             explorer.addChildren(action.parent, action.data);
             // explorer.addChildren(action.parent, children);
-            explorer.markChildrenForAnimationRecuresively(action.parent);
+            explorer.markChildrenForAnimationRecuresively(action.parent, action.data);
             
             return {
                 rootNode: explorer.getRoot()

@@ -39,7 +39,7 @@ export class NodeMatrix extends React.PureComponent {
         const windowWidth = windowSize / 200;
         const levelWidth = Number((windowWidth).toFixed(0));
         this.props.addLevelWidth(levelWidth);
-    };
+};
 
     render(){
         const { root, maxColumnSize, loading } = this.props;
@@ -51,7 +51,7 @@ export class NodeMatrix extends React.PureComponent {
             let topOffset = 0
             for (let j = 0; j < levels[i].length; j++) {
                 if (levels[i][j].length > 0){
-                    const parentOffset = levels[i][j][0].parentNode ? levels[i][j][0].parentNode.offset : 0;  
+                    const parentOffset = levels[i][j][0].parentNode ? levels[i][j][0].parentNode.placementOffset : 0;  
                     const paddingAmount = parentOffset - balancedLevels[i].length;
                     const topPadding = NodeExplorer.generateEmptyNodes('space', paddingAmount);
 
@@ -61,7 +61,7 @@ export class NodeMatrix extends React.PureComponent {
 
                 for (let y = 0; y < levels[i][j].length; y++) {
                     const node = levels[i][j][y];
-                    node.offset = ++topOffset;
+                    node.placementOffset = ++topOffset;
                     let bottomOffset = NodeExplorer.getOpenedChildrenWidth(node);
                     topOffset += bottomOffset;
                     let bottomPadding = '';
@@ -161,7 +161,7 @@ export default connect(
         },
         addLevelWidth: (levelWidth) => {
             dispatch(addLevelWidth(levelWidth));
-        },
+},
     }),
 )(NodeMatrix);
 

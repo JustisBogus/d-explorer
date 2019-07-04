@@ -8,17 +8,23 @@ import loadChildren from '../../actions/loadChildrenAction';
 import toggleChildren from '../../actions/toggleChildrenAction';
 import openModalAction from '../../actions/Modal/openModalAction';
 import unmarkChildren from '../../actions/unmarkChildren';
+import setLoadMoreIndex from '../../actions/setLoadMoreIndex';
 import setFocus from '../../actions/setFocus';
 import { Transition, animated, Spring } from 'react-spring/renderprops';
 import RequestsManager, { requestName } from '../../utils/RequestsManager';
 
 import './styles.css';
 
-export class Node extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = { clicked: false }
-      }
+export class Node extends React.PureComponent {
+    onOpenInfo = () => {
+        if(this.props.infoInModal){
+            this.props.openModalAction({enrolleeId: this.props.id});
+        }
+        else {
+            window.open(this.props.detailsUrl + this.props.id, '_blank');
+        }
+    };
+
 
     onOpenModal = () => {
         this.props.openModalAction({enrolleeId: this.props.id})
@@ -28,43 +34,92 @@ export class Node extends React.Component {
         this.props.setFocus(nodeId);
         const {
             id, onLoad, showChildren, sourceUrl, numberOfChildren,
-            setLoading, setLoaded, children, animate
+            setLoading, setLoaded, children, animate, onToggleChildren
         } = this.props;
+        this.props.setLoadMoreIndex(0);
+        //hide
+        if (showChildren){
+            setLoading();
+            onToggleChildren(id);
+            setLoaded();
+            return;
+        }
+
+        const childrenLength = children.filter(c => !c.loadMoreNode).length;
         
         if (numberOfChildren > 0) {
             setLoading();
             let childrenResult = [];
-
-            if (children.length === 0) {
+            let remainingChildren = 0;
+            if (childrenLength === 0) {
                 const url = sourceUrl + `?id=` + id;
                 childrenResult = await RequestsManager(requestName.GET_CHILDREN, url);
-            }
-            
-            if (!childrenResult.errors) {
-                onLoad(id, showChildren, childrenResult);
+                remainingChildren = numberOfChildren - childrenResult.length;
+            } else {
+                remainingChildren = numberOfChildren - childrenLength;
             }
 
+            if (!childrenResult.errors) {
+                if (remainingChildren !== 0){
+                    onLoad(id, showChildren, [...childrenResult, {
+                        loadMoreNode: true, 
+                        offset: numberOfChildren - remainingChildren, 
+                        parent: id, 
+                        id: 'load_'+ id, 
+                        numberOfChildren: remainingChildren 
+                    }]);
+                }else{
+                    onLoad(id, showChildren, childrenResult);
+                }
+            }
             setLoaded();
         }
-  
-        this.setState({ clicked: true });
-    
+    }
+
+    handleLoadMoreClick = async () => {
+        const {
+            i, id, loadMore, sourceUrl, numberOfChildren,
+            setLoading, setLoaded, parent, offset
+        } = this.props;
+        this.props.setLoadMoreIndex(i);
+        if (numberOfChildren > 0) {
+            setLoading();
+            let childrenResult = [];
+            const url = `${sourceUrl}?id=${parent}&offset=${offset}`;
+            childrenResult = await RequestsManager(requestName.GET_CHILDREN, url);
+
+            if (!childrenResult.errors) {
+                if (childrenResult.length < numberOfChildren){
+                    const remainingChildren = numberOfChildren - childrenResult.length;
+                    loadMore(parent, [...childrenResult, {
+                        loadMoreNode: true, 
+                        offset: childrenResult.length + offset, 
+                        parent: parent, 
+                        id: 'load_'+ parent, 
+                        numberOfChildren: remainingChildren 
+                    }]);
+                }else{
+                    loadMore(parent, childrenResult,);
+                }
+            }
+            setLoaded();
+        }
     }
 
     render() {
-        const { title, numberOfChildren, id, focusNode, parent, animate } = this.props;
+        const { title, numberOfChildren, loadMoreNode, i, id, focusNode, parent, animate, loadMoreIndex } = this.props;
         const classList = ['Node__Container'];
 
-        if (numberOfChildren === 0 && id !== focusNode) {
-            classList.push('disabled');
-        }
-        
         if (parent == focusNode) {
             classList.push('focus');
         }
 
         if (id === focusNode) {
             classList.push('selected');
+        }
+
+        if (numberOfChildren === 0) {
+            classList.push('disabled');
         }
 
         let animationMargin;
@@ -85,49 +140,76 @@ export class Node extends React.Component {
         let animationScaleTo;
         let enter;
      
-        if (animate && focusNode != id) {
+        if (animate && focusNode != id && i >= loadMoreIndex ) {
             animationScaleFrom = { opacity: 0, transform: `scale(0.8)`} 
             animationScaleTo = { opacity: 1, transform: `scale(1)`}
             enter={ opacity: 1, transform: `scale(1)`}
         }
         else {
-            console.log('no animate ' ,id);
             animationScaleFrom = { opacity: 1,  transform: `scale(1)`}
             animationScaleTo = { opacity: 1, transform: `scale(1)`} 
             enter={ opacity: 1, transform: `scale(1)`}
         }
-     
-        return (
-            <Transition
-                native
-                items={true}
-                from={animationScaleFrom}
-                to={animationScaleTo}
-                enter={enter}
-                leave={animationScaleFrom}
-                onRest={focusNode == id ? () => this.props.unmarkChildren(id) : null}
-            >
-                {show => show && (props => (
+
+        let content;
+
+        if(!loadMoreNode) {
+            content = <Transition
+                        native
+                        items={true}
+                        from={animationScaleFrom}
+                        to={animationScaleTo}
+                        enter={enter}
+                        leave={animationScaleFrom}
+                        onRest={focusNode == id ? () => this.props.unmarkChildren(id) : null}
+                    >
+                        {show => show && (props => (
+                            <animated.div style={props}>
+                                <div className={classList.join(' ')}>
+                                    <div onClick={() => this.handleClick(id)} className="Node__Title">
+                                        <span>{title}</span>                      
+                                    <div>{numberOfChildren}</div>
+                                </div>
+                                    <div className="Node__ModalButtonContainer" onClick={this.onOpenModal}>
+                                        <i className="fa fa-external-link"></i>
+                                    </div>
+                                </div> 
+                            </animated.div>
+                        ))}
+                    </Transition>
+            
+        } else {
+            content = <Transition
+                        native
+                        items={true}
+                        from={animationScaleFrom}
+                        to={animationScaleTo}
+                        enter={enter}
+                        leave={animationScaleFrom}
+                        onRest={focusNode == id ? () => this.props.unmarkChildren(id) : null}
+                    >
+                        {show => show && (props => (
                     <animated.div style={props}>
                         <div className={classList.join(' ')}>
-                            <div onClick={() => this.handleClick(id)} className="Node__Title">
-                                <span>{title}</span>                      
-                                <div>{numberOfChildren}</div>
+                            <div onClick={() => this.handleLoadMoreClick()} className="LoadMoreNode__Title">
+                                <span>Load More</span>
                             </div>
-                            <div className="Node__ModalButtonContainer" onClick={this.onOpenModal}>
-                                <i className="fa fa-external-link"></i>
-                            </div>
-                        </div> 
+                        </div>
                     </animated.div>
                 ))}
-            </Transition>     
-        );
+            </Transition>
+        }
+     
+        console.log(this.props.loadMoreIndex);
+
+        return content;
     }
 }
 
-
 export const nodeProps = {
     id: PropTypes.string.isRequired,
+    loadMoreNode: PropTypes.bool,
+    offset: PropTypes.number,
     parent: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     showChildren: PropTypes.bool,
@@ -152,9 +234,12 @@ Node.defaultProps = {
 }
 
 export default connect(
-    state => ({
+    (state) => ({        
         sourceUrl: state.variables.sourceUrl,
+        detailsUrl: state.variables.detailsUrl,
+        infoInModal: state.variables.inModal,
         focusNode: state.variables.focusNode,
+        loadMoreIndex: state.variables.loadMoreIndex,
     }),
     dispatch => ({
         onLoad: (id, show, children) => {
@@ -165,10 +250,13 @@ export default connect(
                 dispatch(toggleChildren(id));
             }
         },
-        unmarkChildren: (id) => { dispatch(unmarkChildren(id)) },
-        setLoading: () => { dispatch(setLoadingAction()); },
-        setLoaded: () => { dispatch(setLoadedAction()); },
+        unmarkChildren: (id) => dispatch(unmarkChildren(id)) ,
+        onToggleChildren: (id) => dispatch(toggleChildren(id)),
+        loadMore: (id, children) => dispatch(loadChildren(id, children)),
+        setLoading: () => dispatch(setLoadingAction()) ,
+        setLoaded: () => dispatch(setLoadedAction()) ,
         openModalAction: (enrolleeId) => dispatch(openModalAction(enrolleeId)),
-        setFocus: (id) => { dispatch(setFocus(id)); },
+        setFocus: (id) => dispatch(setFocus(id)),
+        setLoadMoreIndex: (i) => dispatch(setLoadMoreIndex(i)),
     }),
 )(Node);
